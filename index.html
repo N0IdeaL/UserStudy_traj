@@ -173,42 +173,56 @@
     .rating-label {
       text-align: left;
       margin-bottom: 4px;
+      font-size: 12px;
+      color: #555;
     }
 
     .rating-options {
       display: flex;
-      gap: 6px;
+      gap: 0;
     }
 
     .rating-options label {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      border: 1px solid #999;
+      flex: 1;
+      height: 38px;
+      border: 1px solid #d1d5db;
+      border-right-width: 0;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 14px;
       user-select: none;
       background: #fff;
-      transition: all 0.15s ease-out;
+      transition: all 0.12s ease-out;
+    }
+
+    .rating-options label:first-child {
+      border-radius: 6px 0 0 6px;
+    }
+
+    .rating-options label:last-child {
+      border-radius: 0 6px 6px 0;
+      border-right-width: 1px;
+    }
+
+    .rating-options label:hover {
+      background: #eff6ff;
     }
 
     .rating-options input {
       display: none;
     }
 
-    .rating-options input:checked + span {
-      background: #2563eb;
-      color: #fff;
-      border-color: #2563eb;
-      font-weight: bold;
-    }
-
     .rating-options label.checked {
       background: #2563eb;
       border-color: #2563eb;
+      position: relative;
+      z-index: 1;
+    }
+
+    .rating-options label.checked + label {
+      border-left-color: #2563eb;
     }
 
     .rating-options label.checked span {
