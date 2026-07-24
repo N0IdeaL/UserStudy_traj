@@ -412,13 +412,6 @@
 
     // 4 个场景文件夹（01～04），视频尚未全部就绪时会显示加载重试提示
     const sceneFolders = ['01', '02', '03', '04'];
-    // 每个场景只允许这一方法的视频输出声音，并由它担任同步主时钟。
-    const audioMethodByScene = {
-      '01': 'ours',
-      '02': 'ours',
-      '03': 'ours',
-      '04': 'tcdiff'
-    };
 
     const METHOD_COUNT = methodNames.length;
 
@@ -609,7 +602,6 @@
     }
 
     let syncMasterVideo = null;
-    let syncAnimationFrame = null;
     let syncGeneration = 0;
     let syncSuspended = true;
     let groupShouldBePlaying = false;
@@ -646,34 +638,6 @@
       }
     }
 
-    function startCorrectionLoop() {
-      if (syncAnimationFrame !== null) {
-        cancelAnimationFrame(syncAnimationFrame);
-      }
-
-      function correctDrift() {
-        if (!syncSuspended && groupShouldBePlaying && syncMasterVideo) {
-          const masterTime = syncMasterVideo.currentTime;
-          activeVideos().forEach(video => {
-            if (video === syncMasterVideo || video.paused || video.seeking) return;
-
-            const drift = video.currentTime - masterTime;
-            if (Math.abs(drift) >= 0.03) {
-              setVideoTime(video, masterTime);
-              video.playbackRate = 1;
-            } else if (Math.abs(drift) > 0.015) {
-              video.playbackRate = drift > 0 ? 0.98 : 1.02;
-            } else {
-              video.playbackRate = 1;
-            }
-          });
-        }
-        syncAnimationFrame = requestAnimationFrame(correctDrift);
-      }
-
-      syncAnimationFrame = requestAnimationFrame(correctDrift);
-    }
-
     function playVideoGroup(time) {
       if (syncSuspended || !syncMasterVideo) return;
 
@@ -682,7 +646,6 @@
       }
       groupShouldBePlaying = true;
 
-      // 主视频先播放，确保浏览器把用户手势授权给唯一的有声播放器。
       const orderedVideos = [
         syncMasterVideo,
         ...activeVideos().filter(video => video !== syncMasterVideo)
@@ -695,10 +658,6 @@
         // 等待用户点击任意一个视频的播放按钮。
         if (results[0] && results[0].status === 'rejected') {
           pauseVideoGroup();
-        } else {
-          // 五个 play() Promise 实际进入播放态的时刻仍可能略有不同；
-          // 启动完成后立即以有声主视频再校准一次。
-          setGroupTime(syncMasterVideo.currentTime);
         }
       });
     }
@@ -717,22 +676,15 @@
       });
     }
 
-    function configureVideoSync(sceneName) {
-      const audioMethod = audioMethodByScene[sceneName];
-      syncMasterVideo =
-        videoEls.find(video => video.dataset.method === audioMethod) ||
-        activeVideos()[0] ||
-        null;
+    function configureVideoSync() {
+      syncMasterVideo = activeVideos()[0] || null;
 
       activeVideos().forEach(video => {
         video.loop = false;
-        video.muted = video !== syncMasterVideo;
-        video.defaultMuted = video !== syncMasterVideo;
         video.playbackRate = 1;
       });
 
       syncSuspended = false;
-      startCorrectionLoop();
     }
 
     function stopVideoSync() {
@@ -740,10 +692,6 @@
       syncSuspended = true;
       groupRestarting = false;
       pauseVideoGroup();
-      if (syncAnimationFrame !== null) {
-        cancelAnimationFrame(syncAnimationFrame);
-        syncAnimationFrame = null;
-      }
       syncMasterVideo = null;
     }
 
@@ -916,7 +864,7 @@
         if (statusElForVideo) statusElForVideo.textContent = '';
       });
 
-      configureVideoSync(t.sceneName);
+      configureVideoSync();
       autoPlayAllVideos();
       initRatingControls();
       restoreRatings();
