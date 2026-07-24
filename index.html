@@ -285,7 +285,7 @@
     <!-- 5 个方法，由 JS 初始化标题与评分控件 -->
     <div class="scene" data-scene-index="0">
       <div class="scene-title"></div>
-      <div class="media-wrap"><video id="video-0" controls loop></video></div>
+      <div class="media-wrap"><video id="video-0" controls preload="auto"></video></div>
       <div class="video-status" id="status-0" aria-live="polite"></div>
       <div class="rating-block">
         <div class="rating-label">轨迹跟随情况</div>
@@ -307,7 +307,7 @@
 
     <div class="scene" data-scene-index="1">
       <div class="scene-title"></div>
-      <div class="media-wrap"><video id="video-1" controls loop></video></div>
+      <div class="media-wrap"><video id="video-1" controls preload="auto"></video></div>
       <div class="video-status" id="status-1" aria-live="polite"></div>
       <div class="rating-block">
         <div class="rating-label">轨迹跟随情况</div>
@@ -329,7 +329,7 @@
 
     <div class="scene" data-scene-index="2">
       <div class="scene-title"></div>
-      <div class="media-wrap"><video id="video-2" controls loop></video></div>
+      <div class="media-wrap"><video id="video-2" controls preload="auto"></video></div>
       <div class="video-status" id="status-2" aria-live="polite"></div>
       <div class="rating-block">
         <div class="rating-label">轨迹跟随情况</div>
@@ -351,7 +351,7 @@
 
     <div class="scene" data-scene-index="3">
       <div class="scene-title"></div>
-      <div class="media-wrap"><video id="video-3" controls loop></video></div>
+      <div class="media-wrap"><video id="video-3" controls preload="auto"></video></div>
       <div class="video-status" id="status-3" aria-live="polite"></div>
       <div class="rating-block">
         <div class="rating-label">轨迹跟随情况</div>
@@ -373,7 +373,7 @@
 
     <div class="scene" data-scene-index="4">
       <div class="scene-title"></div>
-      <div class="media-wrap"><video id="video-4" controls loop></video></div>
+      <div class="media-wrap"><video id="video-4" controls preload="auto"></video></div>
       <div class="video-status" id="status-4" aria-live="polite"></div>
       <div class="rating-block">
         <div class="rating-label">轨迹跟随情况</div>
@@ -412,6 +412,13 @@
 
     // 4 个场景文件夹（01～04），视频尚未全部就绪时会显示加载重试提示
     const sceneFolders = ['01', '02', '03', '04'];
+    // 每个场景只允许这一方法的视频输出声音，并由它担任同步主时钟。
+    const audioMethodByScene = {
+      '01': 'ours',
+      '02': 'ours',
+      '03': 'ours',
+      '04': 'tcdiff'
+    };
 
     const METHOD_COUNT = methodNames.length;
 
@@ -601,17 +608,186 @@
       trajectoryStatus.textContent = '';
     }
 
-    videoEls.forEach(v => {
-      v.addEventListener('play', () => {
-        videoEls.forEach(x => {
-          if (x !== v && x.src) {
-            x.play().catch(() => {});
-          }
-        });
+    let syncMasterVideo = null;
+    let syncAnimationFrame = null;
+    let syncGeneration = 0;
+    let syncSuspended = true;
+    let groupShouldBePlaying = false;
+    let groupRestarting = false;
+    const programmedSeekTargets = new WeakMap();
+
+    function activeVideos() {
+      return videoEls.filter(video => video.getAttribute('src'));
+    }
+
+    function setVideoTime(video, time) {
+      if (!Number.isFinite(video.duration) || video.readyState < 1) return;
+      const upperBound = Math.max(0, video.duration - 0.001);
+      const target = Math.min(Math.max(0, time), upperBound);
+      programmedSeekTargets.set(video, target);
+      if (Math.abs(video.currentTime - target) > 0.005) {
+        video.currentTime = target;
+      }
+    }
+
+    function setGroupTime(time) {
+      activeVideos().forEach(video => setVideoTime(video, time));
+    }
+
+    function pauseVideoGroup() {
+      const masterTime = syncMasterVideo ? syncMasterVideo.currentTime : null;
+      groupShouldBePlaying = false;
+      activeVideos().forEach(video => {
+        video.pause();
+        video.playbackRate = 1;
+      });
+      if (Number.isFinite(masterTime)) {
+        setGroupTime(masterTime);
+      }
+    }
+
+    function startCorrectionLoop() {
+      if (syncAnimationFrame !== null) {
+        cancelAnimationFrame(syncAnimationFrame);
+      }
+
+      function correctDrift() {
+        if (!syncSuspended && groupShouldBePlaying && syncMasterVideo) {
+          const masterTime = syncMasterVideo.currentTime;
+          activeVideos().forEach(video => {
+            if (video === syncMasterVideo || video.paused || video.seeking) return;
+
+            const drift = video.currentTime - masterTime;
+            if (Math.abs(drift) >= 0.03) {
+              setVideoTime(video, masterTime);
+              video.playbackRate = 1;
+            } else if (Math.abs(drift) > 0.015) {
+              video.playbackRate = drift > 0 ? 0.98 : 1.02;
+            } else {
+              video.playbackRate = 1;
+            }
+          });
+        }
+        syncAnimationFrame = requestAnimationFrame(correctDrift);
+      }
+
+      syncAnimationFrame = requestAnimationFrame(correctDrift);
+    }
+
+    function playVideoGroup(time) {
+      if (syncSuspended || !syncMasterVideo) return;
+
+      if (Number.isFinite(time)) {
+        setGroupTime(time);
+      }
+      groupShouldBePlaying = true;
+
+      // 主视频先播放，确保浏览器把用户手势授权给唯一的有声播放器。
+      const orderedVideos = [
+        syncMasterVideo,
+        ...activeVideos().filter(video => video !== syncMasterVideo)
+      ];
+      const playAttempts = orderedVideos.map(video => video.play());
+
+      Promise.allSettled(playAttempts).then(results => {
+        if (!groupShouldBePlaying || syncSuspended) return;
+        // 若有声主视频被浏览器的自动播放策略拦截，整组保持暂停，
+        // 等待用户点击任意一个视频的播放按钮。
+        if (results[0] && results[0].status === 'rejected') {
+          pauseVideoGroup();
+        } else {
+          // 五个 play() Promise 实际进入播放态的时刻仍可能略有不同；
+          // 启动完成后立即以有声主视频再校准一次。
+          setGroupTime(syncMasterVideo.currentTime);
+        }
+      });
+    }
+
+    function restartVideoGroup() {
+      if (groupRestarting || syncSuspended) return;
+      groupRestarting = true;
+      activeVideos().forEach(video => {
+        video.pause();
+        video.playbackRate = 1;
+      });
+      setGroupTime(0);
+      requestAnimationFrame(() => {
+        groupRestarting = false;
+        playVideoGroup(0);
+      });
+    }
+
+    function configureVideoSync(sceneName) {
+      const audioMethod = audioMethodByScene[sceneName];
+      syncMasterVideo =
+        videoEls.find(video => video.dataset.method === audioMethod) ||
+        activeVideos()[0] ||
+        null;
+
+      activeVideos().forEach(video => {
+        video.loop = false;
+        video.muted = video !== syncMasterVideo;
+        video.defaultMuted = video !== syncMasterVideo;
+        video.playbackRate = 1;
+      });
+
+      syncSuspended = false;
+      startCorrectionLoop();
+    }
+
+    function stopVideoSync() {
+      syncGeneration++;
+      syncSuspended = true;
+      groupRestarting = false;
+      pauseVideoGroup();
+      if (syncAnimationFrame !== null) {
+        cancelAnimationFrame(syncAnimationFrame);
+        syncAnimationFrame = null;
+      }
+      syncMasterVideo = null;
+    }
+
+    videoEls.forEach(video => {
+      video.addEventListener('play', () => {
+        if (syncSuspended || groupShouldBePlaying) return;
+        playVideoGroup(video.currentTime);
+      });
+
+      video.addEventListener('pause', () => {
+        if (
+          syncSuspended ||
+          groupRestarting ||
+          !groupShouldBePlaying ||
+          video.ended
+        ) return;
+        pauseVideoGroup();
+      });
+
+      video.addEventListener('seeking', () => {
+        if (syncSuspended || groupRestarting) return;
+        const programmedTarget = programmedSeekTargets.get(video);
+        if (
+          programmedTarget !== undefined &&
+          Math.abs(video.currentTime - programmedTarget) < 0.15
+        ) {
+          return;
+        }
+        setGroupTime(video.currentTime);
+      });
+
+      video.addEventListener('seeked', () => {
+        programmedSeekTargets.delete(video);
+      });
+
+      video.addEventListener('ended', () => {
+        if (video === syncMasterVideo) {
+          restartVideoGroup();
+        }
       });
     });
 
     function autoPlayAllVideos() {
+      const generation = syncGeneration;
       const loadPromises = videoEls
         .filter(v => v.src)
         .map(video => new Promise((resolve) => {
@@ -632,11 +808,8 @@
         }));
 
       Promise.all(loadPromises).then(() => {
-        videoEls.forEach(video => {
-          if (video.src) {
-            video.play().catch(() => {});
-          }
-        });
+        if (generation !== syncGeneration || syncSuspended) return;
+        playVideoGroup(0);
       });
     }
 
@@ -687,6 +860,7 @@
     }
 
     function loadTrial() {
+      stopVideoSync();
       if (currentTrial >= randomizedTrials.length) {
         statusEl.textContent = '✅ 所有页已完成，可以提交结果或下载备份。';
         trialInfoEl.textContent = '';
@@ -725,7 +899,7 @@
       videoEls.forEach((video, index) => {
         const pair = shuffledPairs[index];
         video.src = pair.videoSrc;
-        video.loop = true;
+        video.loop = false;
         video.dataset.method = pair.method;
         video.dataset.filename = pair.filename;
         video.dataset.displayIndex = index + 1;
@@ -742,6 +916,7 @@
         if (statusElForVideo) statusElForVideo.textContent = '';
       });
 
+      configureVideoSync(t.sceneName);
       autoPlayAllVideos();
       initRatingControls();
       restoreRatings();
