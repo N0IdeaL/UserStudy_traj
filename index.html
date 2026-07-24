@@ -1,4 +1,10 @@
-<!DOCTYPE html>
+\documentclass[10pt]{article}
+\usepackage[usenames]{color} %pour la couleur
+\usepackage{amssymb} %maths
+\usepackage{amsmath} %maths
+\usepackage[utf8]{inputenc} %utile pour taper directement les caractères accentués
+\begin{document}
+\begin{align*}<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -227,6 +233,14 @@
       background-color: #cccccc;
     }
 
+    .buttons .backup-button {
+      background-color: #64748b;
+    }
+
+    .buttons .backup-button:hover {
+      background-color: #475569;
+    }
+
     #status {
       margin-top: 10px;
       text-align: center;
@@ -348,7 +362,8 @@
   <div class="buttons">
     <button id="prevButton" onclick="goToPrevious()">上一页</button>
     <button onclick="saveAndNext()">保存并下一页</button>
-    <button id="exportButton" onclick="exportCSV()">导出结果</button>
+    <button id="submitButton" onclick="submitResults()">提交结果</button>
+    <button id="exportButton" class="backup-button" onclick="exportCSV()">下载备份</button>
   </div>
 
   <p id="status"></p>
@@ -363,6 +378,32 @@
     const sceneFolders = ['01', '02', '03', '04', '05', '06'];
 
     const METHOD_COUNT = methodNames.length;
+
+    // 替换为 Google Apps Script 部署后得到的 /exec 地址。
+    const SUBMIT_URL = https://script.google.com/macros/s/AKfycbxbR__-EyyHcE9JJt-99t3n57Qd3HDrV5F6gUwHwXHU9nT_YxPbenmO58iNzBe8k-bQ/exec ;
+    const PARTICIPANT_ID_KEY = 'userStudyParticipantId';
+    const SUBMISSION_KEY = 'userStudySubmission';
+
+    function createUuid() {
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+      }
+
+      // 为不支持 crypto.randomUUID() 的旧浏览器提供兼容方案。
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, char => {
+        const randomValue = window.crypto && window.crypto.getRandomValues
+          ? window.crypto.getRandomValues(new Uint8Array(1))[0] % 16
+          : Math.floor(Math.random() * 16);
+        const value = char === 'x' ? randomValue : (randomValue & 0x3) | 0x8;
+        return value.toString(16);
+      });
+    }
+
+    let participantId = localStorage.getItem(PARTICIPANT_ID_KEY);
+    if (!participantId) {
+      participantId = createUuid();
+      localStorage.setItem(PARTICIPANT_ID_KEY, participantId);
+    }
 
     const trials = sceneFolders.map((folder, sceneIndex) => ({
       sceneName: folder,
@@ -391,6 +432,7 @@
     const pageSceneEl = document.getElementById('pageScene');
     const sceneGrid = document.getElementById('sceneGrid');
     const videoEls = Array.from({ length: METHOD_COUNT }, (_, i) => document.getElementById('video-' + i));
+    const submitButton = document.getElementById('submitButton');
     const exportButton = document.getElementById('exportButton');
     const trajectoryImage = document.getElementById('trajectoryImage');
     const trajectoryStatus = document.getElementById('trajectoryStatus');
@@ -610,7 +652,7 @@
 
     function loadTrial() {
       if (currentTrial >= randomizedTrials.length) {
-        statusEl.textContent = '✅ 所有页已完成，可以导出结果。';
+        statusEl.textContent = '✅ 所有页已完成，可以提交结果或下载备份。';
         trialInfoEl.textContent = '';
         pageSceneEl.textContent = '';
         clearTrajectoryImage();
@@ -619,7 +661,7 @@
           const statusElForVideo = document.getElementById(`status-${i}`);
           if (statusElForVideo) statusElForVideo.textContent = '';
         }
-        updateExportButton();
+        updateActionButtons();
         return;
       }
 
@@ -632,7 +674,11 @@
         method: t.methods[idx],
         filename: videoSrc.split('/').pop().replace('.mp4', '')
       }));
-      const shuffledPairs = shuffle([...videoMethodPairs]);
+      // 同一页面返回重看时保持原有方法顺序，避免评分与方法错位。
+      if (!t.shuffledPairs) {
+        t.shuffledPairs = shuffle([...videoMethodPairs]);
+      }
+      const shuffledPairs = t.shuffledPairs;
 
       t.shuffledOrder = shuffledPairs.map((pair, idx) => ({
         displayIndex: idx + 1,
@@ -664,7 +710,7 @@
       initRatingControls();
       restoreRatings();
       updatePrevButton();
-      updateExportButton();
+      updateActionButtons();
 
       statusEl.textContent = '';
       trialInfoEl.textContent = `页 ${currentTrial + 1} / ${randomizedTrials.length}`;
@@ -760,16 +806,19 @@
       }
     }
 
-    function updateExportButton() {
-      if (flag_trial) {
-        exportButton.disabled = false;
-        return;
-      }
-
+    function areAllScenesCompleted() {
       const allScenesCompleted = sceneFolders.every(folder => {
         return results.some(r => r.sceneName === folder);
       });
 
+      return flag_trial || allScenesCompleted;
+    }
+
+    function updateActionButtons() {
+      const allScenesCompleted = areAllScenesCompleted();
+      const savedSubmission = localStorage.getItem(SUBMISSION_KEY);
+
+      submitButton.disabled = !allScenesCompleted || Boolean(savedSubmission);
       exportButton.disabled = !allScenesCompleted;
     }
 
@@ -797,9 +846,72 @@
         results.push(resultData);
       }
 
-      updateExportButton();
+      updateActionButtons();
       currentTrial++;
       loadTrial();
+    }
+
+    async function submitResults() {
+      if (!areAllScenesCompleted()) {
+        alert('请完成所有场景的评分后再提交。');
+        return;
+      }
+
+      if (!SUBMIT_URL.startsWith('https://script.google.com/macros/s/') || !SUBMIT_URL.endsWith('/exec')) {
+        alert('提交地址尚未配置，请先设置 Apps Script /exec 地址。');
+        return;
+      }
+
+      const allRows = [];
+      results.forEach(result => {
+        result.ratings.forEach(rating => {
+          allRows.push({
+            scene: result.sceneName,
+            method: rating.method,
+            trajectory: rating.trajectory,
+            quality: rating.quality,
+            timestamp: result.timestamp
+          });
+        });
+      });
+
+      const submissionId = createUuid();
+      const payload = {
+        participantId,
+        submissionId,
+        rows: allRows
+      };
+
+      submitButton.disabled = true;
+      statusEl.textContent = '正在提交，请稍候…';
+
+      try {
+        await fetch(SUBMIT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        localStorage.setItem(
+          SUBMISSION_KEY,
+          JSON.stringify({
+            submissionId,
+            submittedAt: new Date().toISOString()
+          })
+        );
+
+        // no-cors 无法读取服务器响应，因此这里只能确认请求已由浏览器发出。
+        statusEl.textContent = '✅ 提交请求已发送，感谢参与。建议保留下载备份。';
+        updateActionButtons();
+      } catch (error) {
+        console.error(error);
+        statusEl.textContent = '⚠️ 提交失败，请重试或下载备份文件。';
+        submitButton.disabled = false;
+        exportButton.disabled = false;
+      }
     }
 
     function exportCSV() {
@@ -821,6 +933,7 @@
       results.forEach(r => {
         r.ratings.forEach(rating => {
           allRows.push({
+            participantId,
             sceneName: r.sceneName,
             method: rating.method,
             trajectory: rating.trajectory,
@@ -838,9 +951,10 @@
       });
 
       const csvRows = [];
-      csvRows.push('scene,method,trajectory following,dance quality,timestamp');
+      csvRows.push('participant_id,scene,method,trajectory following,dance quality,timestamp');
       allRows.forEach(row => {
         csvRows.push([
+          escapeCSV(row.participantId),
           escapeCSV(row.sceneName),
           escapeCSV(row.method),
           escapeCSV(row.trajectory),
@@ -859,9 +973,11 @@
     }
 
     updatePrevButton();
-    updateExportButton();
+    updateActionButtons();
     loadTrial();
   </script>
 
 </body>
 </html>
+\end{align*}
+\end{document}
