@@ -812,7 +812,10 @@
       const allScenesCompleted = areAllScenesCompleted();
       const savedSubmission = localStorage.getItem(SUBMISSION_KEY);
 
-      submitButton.disabled = !allScenesCompleted || Boolean(savedSubmission);
+      // no-cors 无法确认服务器是否写入成功，因此不能因本地存在提交记录
+      // 就永久禁用按钮；保留相同 submissionId 供安全重试。
+      submitButton.disabled = !allScenesCompleted;
+      submitButton.textContent = savedSubmission ? '重新提交' : '提交结果';
       exportButton.disabled = !allScenesCompleted;
     }
 
@@ -869,7 +872,22 @@
         });
       });
 
-      const submissionId = createUuid();
+      const rowsSignature = JSON.stringify(allRows);
+      let savedSubmission = null;
+
+      try {
+        savedSubmission = JSON.parse(localStorage.getItem(SUBMISSION_KEY));
+      } catch (error) {
+        localStorage.removeItem(SUBMISSION_KEY);
+      }
+
+      const canReuseSubmissionId =
+        savedSubmission &&
+        typeof savedSubmission.submissionId === 'string' &&
+        (!savedSubmission.rowsSignature || savedSubmission.rowsSignature === rowsSignature);
+      const submissionId = canReuseSubmissionId
+        ? savedSubmission.submissionId
+        : createUuid();
       const payload = {
         participantId,
         submissionId,
@@ -893,7 +911,8 @@
           SUBMISSION_KEY,
           JSON.stringify({
             submissionId,
-            submittedAt: new Date().toISOString()
+            submittedAt: new Date().toISOString(),
+            rowsSignature
           })
         );
 
