@@ -263,10 +263,12 @@
   <h2>用户研究：舞蹈生成视频主观评价</h2>
   <p>
     每一页展示同一场景下，5 种不同方法的生成结果，请观看后分别评分。<br>
-    请对每个视频从两个维度进行 1–5 分评分<br>
+    请对每个视频从四个维度进行 1–5 分评分<br>
     <b><span style="color:#d40303;">评分标准：</span> 1=很差，2=较差，3=一般，4=较好，5=很好</b><br>
     <b><span style="color:#d40303;">维度一：</span> 轨迹跟随情况</b>（生成动作是否准确跟随参考轨迹？）<br>
-    <b><span style="color:#d40303;">维度二：</span> 舞蹈动作质量</b>（动作是否流畅自然、符合舞蹈表现？）
+    <b><span style="color:#d40303;">维度二：</span> 舞蹈动作质量</b>（动作是否流畅自然、符合舞蹈表现？）<br>
+    <b><span style="color:#d40303;">维度三：</span> 音乐节奏对齐</b>（动作是否与音乐节拍、节奏保持同步？）<br>
+    <b><span style="color:#d40303;">维度四：</span> 足部接触稳定性</b>（脚部落地、接触地面是否稳定、无明显滑步或漂浮？）
   </p>
   <p id="pageScene"></p>
 
@@ -293,6 +295,14 @@
         <div class="rating-label">舞蹈动作质量</div>
         <div class="rating-options" data-type="quality"></div>
       </div>
+      <div class="rating-block">
+        <div class="rating-label">音乐节奏对齐</div>
+        <div class="rating-options" data-type="rhythm"></div>
+      </div>
+      <div class="rating-block">
+        <div class="rating-label">足部接触稳定性</div>
+        <div class="rating-options" data-type="footContact"></div>
+      </div>
     </div>
 
     <div class="scene" data-scene-index="1">
@@ -306,6 +316,14 @@
       <div class="rating-block">
         <div class="rating-label">舞蹈动作质量</div>
         <div class="rating-options" data-type="quality"></div>
+      </div>
+      <div class="rating-block">
+        <div class="rating-label">音乐节奏对齐</div>
+        <div class="rating-options" data-type="rhythm"></div>
+      </div>
+      <div class="rating-block">
+        <div class="rating-label">足部接触稳定性</div>
+        <div class="rating-options" data-type="footContact"></div>
       </div>
     </div>
 
@@ -321,6 +339,14 @@
         <div class="rating-label">舞蹈动作质量</div>
         <div class="rating-options" data-type="quality"></div>
       </div>
+      <div class="rating-block">
+        <div class="rating-label">音乐节奏对齐</div>
+        <div class="rating-options" data-type="rhythm"></div>
+      </div>
+      <div class="rating-block">
+        <div class="rating-label">足部接触稳定性</div>
+        <div class="rating-options" data-type="footContact"></div>
+      </div>
     </div>
 
     <div class="scene" data-scene-index="3">
@@ -335,6 +361,14 @@
         <div class="rating-label">舞蹈动作质量</div>
         <div class="rating-options" data-type="quality"></div>
       </div>
+      <div class="rating-block">
+        <div class="rating-label">音乐节奏对齐</div>
+        <div class="rating-options" data-type="rhythm"></div>
+      </div>
+      <div class="rating-block">
+        <div class="rating-label">足部接触稳定性</div>
+        <div class="rating-options" data-type="footContact"></div>
+      </div>
     </div>
 
     <div class="scene" data-scene-index="4">
@@ -348,6 +382,14 @@
       <div class="rating-block">
         <div class="rating-label">舞蹈动作质量</div>
         <div class="rating-options" data-type="quality"></div>
+      </div>
+      <div class="rating-block">
+        <div class="rating-label">音乐节奏对齐</div>
+        <div class="rating-options" data-type="rhythm"></div>
+      </div>
+      <div class="rating-block">
+        <div class="rating-label">足部接触稳定性</div>
+        <div class="rating-options" data-type="footContact"></div>
       </div>
     </div>
     </div>
@@ -368,8 +410,8 @@
     // 5 种方法（参照 01/ 文件夹命名）
     const methodNames = ['ours', 'tcdiff', 'tcdiffpp', 'tcdiffstar', 'edge'];
 
-    // 6 个场景文件夹（01～06），视频尚未全部就绪时会显示加载重试提示
-    const sceneFolders = ['01', '02', '03', '04', '05', '06'];
+    // 4 个场景文件夹（01～04），视频尚未全部就绪时会显示加载重试提示
+    const sceneFolders = ['01', '02', '03', '04'];
 
     const METHOD_COUNT = methodNames.length;
 
@@ -731,6 +773,18 @@
               qualityInput.checked = true;
               qualityInput.dispatchEvent(new Event('change'));
             }
+
+            const rhythmInput = scene.querySelector(`input[name*="_rhythm"][value="${rating.rhythm}"]`);
+            if (rhythmInput) {
+              rhythmInput.checked = true;
+              rhythmInput.dispatchEvent(new Event('change'));
+            }
+
+            const footContactInput = scene.querySelector(`input[name*="_footContact"][value="${rating.footContact}"]`);
+            if (footContactInput) {
+              footContactInput.checked = true;
+              footContactInput.dispatchEvent(new Event('change'));
+            }
           }
         });
       }
@@ -760,8 +814,10 @@
       scenes.forEach((scene, sceneIndex) => {
         const trajectoryInput = scene.querySelector('input[name*="_trajectory"]:checked');
         const qualityInput = scene.querySelector('input[name*="_quality"]:checked');
+        const rhythmInput = scene.querySelector('input[name*="_rhythm"]:checked');
+        const footContactInput = scene.querySelector('input[name*="_footContact"]:checked');
 
-        if (!trajectoryInput || !qualityInput) {
+        if (!trajectoryInput || !qualityInput || !rhythmInput || !footContactInput) {
           allRated = false;
         } else {
           const video = videoEls[sceneIndex];
@@ -770,7 +826,9 @@
             method: video.dataset.method,
             filename: video.dataset.filename,
             trajectory: trajectoryInput.value,
-            quality: qualityInput.value
+            quality: qualityInput.value,
+            rhythm: rhythmInput.value,
+            footContact: footContactInput.value
           });
         }
       });
@@ -867,6 +925,8 @@
             method: rating.method,
             trajectory: rating.trajectory,
             quality: rating.quality,
+            rhythm: rating.rhythm,
+            footContact: rating.footContact,
             timestamp: result.timestamp
           });
         });
@@ -951,6 +1011,8 @@
             method: rating.method,
             trajectory: rating.trajectory,
             quality: rating.quality,
+            rhythm: rating.rhythm,
+            footContact: rating.footContact,
             timestamp: r.timestamp
           });
         });
@@ -964,7 +1026,7 @@
       });
 
       const csvRows = [];
-      csvRows.push('participant_id,scene,method,trajectory following,dance quality,timestamp');
+      csvRows.push('participant_id,scene,method,trajectory following,dance quality,music rhythm alignment,foot contact stability,timestamp');
       allRows.forEach(row => {
         csvRows.push([
           escapeCSV(row.participantId),
@@ -972,6 +1034,8 @@
           escapeCSV(row.method),
           escapeCSV(row.trajectory),
           escapeCSV(row.quality),
+          escapeCSV(row.rhythm),
+          escapeCSV(row.footContact),
           escapeCSV(row.timestamp)
         ].join(','));
       });

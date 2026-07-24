@@ -1,5 +1,5 @@
 const RESULTS_SHEET_NAME = 'Results';
-const EXPECTED_ROW_COUNT = 30;
+const EXPECTED_ROW_COUNT = 20;
 const MAX_ROWS_PER_SUBMISSION = 100;
 
 function doGet() {
@@ -47,6 +47,8 @@ function doPost(e) {
       row.method,
       Number(row.trajectory),
       Number(row.quality),
+      Number(row.rhythm),
+      Number(row.footContact),
       row.timestamp
     ]);
 
@@ -92,6 +94,8 @@ function getOrCreateResultsSheet_() {
       'method',
       'trajectory',
       'quality',
+      'rhythm',
+      'footContact',
       'clientTimestamp'
     ]);
     sheet.setFrozenRows(1);
@@ -129,6 +133,8 @@ function validatePayload_(payload) {
     validateLabel_(row.method, `rows[${index}].method`);
     validateScore_(row.trajectory, `rows[${index}].trajectory`);
     validateScore_(row.quality, `rows[${index}].quality`);
+    validateScore_(row.rhythm, `rows[${index}].rhythm`);
+    validateScore_(row.footContact, `rows[${index}].footContact`);
 
     if (typeof row.timestamp !== 'string' || !/^\d{4}-\d{2}-\d{2}T/.test(row.timestamp)) {
       throw new Error(`Invalid timestamp at row ${index}.`);
