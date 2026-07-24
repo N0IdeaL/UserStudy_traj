@@ -111,71 +111,62 @@
       margin-right: auto;
     }
 
-    .scene-grid {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(210px, 1fr));
-      gap: 20px 22px;
-      min-width: 0;
-    }
-
-    @media (max-width: 1400px) {
-      .input-info-row {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .input-info-left {
-        flex: 0 0 auto;
-        width: min(210px, 100%);
-      }
-
-      .input-info-right {
-        width: 100%;
-        max-width: 100%;
-      }
-
-      .scene-grid {
-        grid-template-columns: repeat(3, minmax(200px, 1fr));
-      }
-    }
-
-    @media (max-width: 900px) {
-      .scene-grid {
-        grid-template-columns: repeat(2, minmax(180px, 1fr));
-      }
-    }
-
-    .scene {
-      background: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      padding: 12px 12px 16px;
-    }
-
-    .scene-title {
-      font-weight: bold;
-      margin-bottom: 6px;
-      text-align: left;
-    }
-
-    .media-wrap {
+    .merged-video-wrap {
       width: 100%;
-      aspect-ratio: 1 / 1;
-      border-radius: 6px;
-      background: #000;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
       overflow: hidden;
     }
 
-    .scene video {
+    .merged-video-wrap video {
       width: 100%;
-      height: 100%;
       display: block;
-      object-fit: contain;
-      background: #000;
+      background: #fff;
+    }
+
+    .video-status-merged {
+      font-size: 13px;
+      color: #b45309;
+      margin-top: 6px;
+      text-align: center;
+      min-height: 18px;
+    }
+
+    .rating-columns {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0;
+      margin-top: 0;
+    }
+
+    .rating-column {
+      background: #ffffff;
+      padding: 10px 10px 14px;
+      border-right: 1px solid #e5e7eb;
+    }
+
+    .rating-column:first-child {
+      border-radius: 0 0 0 8px;
+    }
+
+    .rating-column:last-child {
+      border-right: none;
+      border-radius: 0 0 8px 0;
+    }
+
+    .column-title {
+      font-weight: bold;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 8px;
+      color: #2563eb;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e5e7eb;
     }
 
     .rating-block {
-      margin-top: 10px;
+      margin-top: 8px;
       font-size: 13px;
     }
 
@@ -186,7 +177,7 @@
 
     .rating-options {
       display: flex;
-      gap: 8px;
+      gap: 6px;
     }
 
     .rating-options label {
@@ -223,14 +214,6 @@
     .rating-options label.checked span {
       color: #fff;
       font-weight: bold;
-    }
-
-    .video-status {
-      font-size: 13px;
-      color: #b45309;
-      margin-top: 6px;
-      text-align: center;
-      min-height: 18px;
     }
 
     .buttons {
@@ -294,6 +277,23 @@
       margin-top: 10px;
       text-align: center;
     }
+
+    @media (max-width: 1400px) {
+      .input-info-row {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .input-info-left {
+        flex: 0 0 auto;
+        width: min(210px, 100%);
+      }
+
+      .input-info-right {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -322,122 +322,116 @@
       <b><span style="color:#d40303;">维度一：</span> 轨迹跟随准确性：</b> 舞者在地面上的移动路径是否与给定轨迹一致？请关注移动方向、转弯位置、移动范围和最终到达位置。<br>
       <b><span style="color:#d40303;">维度二：</span> 动作自然性与舞蹈质量：</b>舞蹈动作是否连贯、自然、协调，并具有舞蹈表现力？是否存在明显的僵硬、抖动、动作突变或异常姿势？<br>
       <b><span style="color:#d40303;">维度三：</span> 音乐与动作同步性：</b>动作的重拍、停顿、转折和速度变化是否与音乐的节拍和节奏相匹配？<br>
-      <b><span style="color:#d40303;">维度四：</span> 足地接触与物理合理性：</b>舞者落脚或支撑时，是否存在明显足部滑动、漂浮、穿入地面，或身体移动与脚步不协调的现象？是否出现关节不合理旋转和穿模等不合理情况？
+      <b><span style="color:#d40303;">维度四：</span> 物理合理性：</b>舞者落脚或支撑时，是否存在明显足部滑动、漂浮、穿入地面，或身体移动与脚步不协调的现象？是否出现关节不合理旋转和穿模等不合理情况？
     </div>
   </div>
 
   <div class="trial-layout">
-    <div id="sceneGrid" class="scene-grid">
-    <!-- 5 个方法，由 JS 初始化标题与评分控件 -->
-    <div class="scene" data-scene-index="0">
-      <div class="scene-title"></div>
-      <div class="media-wrap"><video id="video-0" controls preload="auto"></video></div>
-      <div class="video-status" id="status-0" aria-live="polite"></div>
-      <div class="rating-block">
-        <div class="rating-label">轨迹跟随准确性</div>
-        <div class="rating-options" data-type="trajectory"></div>
-      </div>
-      <div class="rating-block">
-        <div class="rating-label">动作自然性与舞蹈质量</div>
-        <div class="rating-options" data-type="quality"></div>
-      </div>
-      <div class="rating-block">
-        <div class="rating-label">音乐与动作同步性</div>
-        <div class="rating-options" data-type="rhythm"></div>
-      </div>
-      <div class="rating-block">
-        <div class="rating-label">足地接触与物理合理性</div>
-        <div class="rating-options" data-type="footContact"></div>
-      </div>
+    <div class="merged-video-wrap">
+      <video id="mergedVideo" controls preload="auto"></video>
     </div>
+    <div class="video-status-merged" id="videoStatusMerged" aria-live="polite"></div>
 
-    <div class="scene" data-scene-index="1">
-      <div class="scene-title"></div>
-      <div class="media-wrap"><video id="video-1" controls preload="auto"></video></div>
-      <div class="video-status" id="status-1" aria-live="polite"></div>
-      <div class="rating-block">
-        <div class="rating-label">轨迹跟随准确性</div>
-        <div class="rating-options" data-type="trajectory"></div>
+    <div id="ratingColumns" class="rating-columns">
+      <div class="rating-column" data-col-index="0">
+        <div class="column-title">视频 1</div>
+        <div class="rating-block">
+          <div class="rating-label">轨迹跟随准确性</div>
+          <div class="rating-options" data-type="trajectory"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">动作自然性与舞蹈质量</div>
+          <div class="rating-options" data-type="quality"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">音乐与动作同步性</div>
+          <div class="rating-options" data-type="rhythm"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">足部滑动/身体穿模/关节不合理旋转</div>
+          <div class="rating-options" data-type="footContact"></div>
+        </div>
       </div>
-      <div class="rating-block">
-        <div class="rating-label">动作自然性与舞蹈质量</div>
-        <div class="rating-options" data-type="quality"></div>
-      </div>
-      <div class="rating-block">
-        <div class="rating-label">音乐与动作同步性</div>
-        <div class="rating-options" data-type="rhythm"></div>
-      </div>
-      <div class="rating-block">
-        <div class="rating-label">足地接触与物理合理性</div>
-        <div class="rating-options" data-type="footContact"></div>
-      </div>
-    </div>
 
-    <div class="scene" data-scene-index="2">
-      <div class="scene-title"></div>
-      <div class="media-wrap"><video id="video-2" controls preload="auto"></video></div>
-      <div class="video-status" id="status-2" aria-live="polite"></div>
-      <div class="rating-block">
-        <div class="rating-label">轨迹跟随准确性</div>
-        <div class="rating-options" data-type="trajectory"></div>
+      <div class="rating-column" data-col-index="1">
+        <div class="column-title">视频 2</div>
+        <div class="rating-block">
+          <div class="rating-label">轨迹跟随准确性</div>
+          <div class="rating-options" data-type="trajectory"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">动作自然性与舞蹈质量</div>
+          <div class="rating-options" data-type="quality"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">音乐与动作同步性</div>
+          <div class="rating-options" data-type="rhythm"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">足部滑动/身体穿模/关节不合理旋转</div>
+          <div class="rating-options" data-type="footContact"></div>
+        </div>
       </div>
-      <div class="rating-block">
-        <div class="rating-label">动作自然性与舞蹈质量</div>
-        <div class="rating-options" data-type="quality"></div>
-      </div>
-      <div class="rating-block">
-        <div class="rating-label">音乐与动作同步性</div>
-        <div class="rating-options" data-type="rhythm"></div>
-      </div>
-      <div class="rating-block">
-        <div class="rating-label">足地接触与物理合理性</div>
-        <div class="rating-options" data-type="footContact"></div>
-      </div>
-    </div>
 
-    <div class="scene" data-scene-index="3">
-      <div class="scene-title"></div>
-      <div class="media-wrap"><video id="video-3" controls preload="auto"></video></div>
-      <div class="video-status" id="status-3" aria-live="polite"></div>
-      <div class="rating-block">
-        <div class="rating-label">轨迹跟随准确性</div>
-        <div class="rating-options" data-type="trajectory"></div>
+      <div class="rating-column" data-col-index="2">
+        <div class="column-title">视频 3</div>
+        <div class="rating-block">
+          <div class="rating-label">轨迹跟随准确性</div>
+          <div class="rating-options" data-type="trajectory"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">动作自然性与舞蹈质量</div>
+          <div class="rating-options" data-type="quality"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">音乐与动作同步性</div>
+          <div class="rating-options" data-type="rhythm"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">足部滑动/身体穿模/关节不合理旋转</div>
+          <div class="rating-options" data-type="footContact"></div>
+        </div>
       </div>
-      <div class="rating-block">
-        <div class="rating-label">动作自然性与舞蹈质量</div>
-        <div class="rating-options" data-type="quality"></div>
-      </div>
-      <div class="rating-block">
-        <div class="rating-label">音乐与动作同步性</div>
-        <div class="rating-options" data-type="rhythm"></div>
-      </div>
-      <div class="rating-block">
-        <div class="rating-label">足地接触与物理合理性</div>
-        <div class="rating-options" data-type="footContact"></div>
-      </div>
-    </div>
 
-    <div class="scene" data-scene-index="4">
-      <div class="scene-title"></div>
-      <div class="media-wrap"><video id="video-4" controls preload="auto"></video></div>
-      <div class="video-status" id="status-4" aria-live="polite"></div>
-      <div class="rating-block">
-        <div class="rating-label">轨迹跟随准确性</div>
-        <div class="rating-options" data-type="trajectory"></div>
+      <div class="rating-column" data-col-index="3">
+        <div class="column-title">视频 4</div>
+        <div class="rating-block">
+          <div class="rating-label">轨迹跟随准确性</div>
+          <div class="rating-options" data-type="trajectory"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">动作自然性与舞蹈质量</div>
+          <div class="rating-options" data-type="quality"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">音乐与动作同步性</div>
+          <div class="rating-options" data-type="rhythm"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">足部滑动/身体穿模/关节不合理旋转</div>
+          <div class="rating-options" data-type="footContact"></div>
+        </div>
       </div>
-      <div class="rating-block">
-        <div class="rating-label">动作自然性与舞蹈质量</div>
-        <div class="rating-options" data-type="quality"></div>
+
+      <div class="rating-column" data-col-index="4">
+        <div class="column-title">视频 5</div>
+        <div class="rating-block">
+          <div class="rating-label">轨迹跟随准确性</div>
+          <div class="rating-options" data-type="trajectory"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">动作自然性与舞蹈质量</div>
+          <div class="rating-options" data-type="quality"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">音乐与动作同步性</div>
+          <div class="rating-options" data-type="rhythm"></div>
+        </div>
+        <div class="rating-block">
+          <div class="rating-label">足部滑动/身体穿模/关节不合理旋转</div>
+          <div class="rating-options" data-type="footContact"></div>
+        </div>
       </div>
-      <div class="rating-block">
-        <div class="rating-label">音乐与动作同步性</div>
-        <div class="rating-options" data-type="rhythm"></div>
-      </div>
-      <div class="rating-block">
-        <div class="rating-label">足地接触与物理合理性</div>
-        <div class="rating-options" data-type="footContact"></div>
-      </div>
-    </div>
     </div>
   </div>
 
@@ -451,12 +445,10 @@
   <p id="status"></p>
   <p id="trialInfo"></p>
 
+  <script src="video_order.js"></script>
   <script>
     // === 实验配置 ===
-    // 5 种方法（参照 01/ 文件夹命名）
     const methodNames = ['ours', 'tcdiff', 'tcdiffpp', 'tcdiffstar', 'edge'];
-
-    // 4 个场景文件夹（01～04），视频尚未全部就绪时会显示加载重试提示
     const sceneFolders = ['01', '02', '03', '04'];
 
     const sceneMusicStyles = {
@@ -468,7 +460,6 @@
 
     const METHOD_COUNT = methodNames.length;
 
-    // 替换为 Google Apps Script 部署后得到的 /exec 地址。
     const SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbxbR__-EyyHcE9JJt-99t3n57Qd3HDrV5F6gUwHwXHU9nT_YxPbenmO58iNzBe8k-bQ/exec';
     const PARTICIPANT_ID_KEY = 'userStudyParticipantId';
     const SUBMISSION_KEY = 'userStudySubmission';
@@ -477,8 +468,6 @@
       if (window.crypto && typeof window.crypto.randomUUID === 'function') {
         return window.crypto.randomUUID();
       }
-
-      // 为不支持 crypto.randomUUID() 的旧浏览器提供兼容方案。
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, char => {
         const randomValue = window.crypto && window.crypto.getRandomValues
           ? window.crypto.getRandomValues(new Uint8Array(1))[0] % 16
@@ -497,8 +486,8 @@
     const trials = sceneFolders.map((folder, sceneIndex) => ({
       sceneName: folder,
       sceneIndex: sceneIndex,
-      videos: methodNames.map(method => `${folder}/${method}.mp4`),
-      methods: methodNames
+      mergedVideo: `${folder}/merged.mp4`,
+      methodOrder: (typeof VIDEO_ORDER !== 'undefined' && VIDEO_ORDER[folder]) || methodNames
     }));
 
     function shuffle(array) {
@@ -519,8 +508,9 @@
     const statusEl = document.getElementById('status');
     const trialInfoEl = document.getElementById('trialInfo');
     const pageSceneEl = document.getElementById('pageScene');
-    const sceneGrid = document.getElementById('sceneGrid');
-    const videoEls = Array.from({ length: METHOD_COUNT }, (_, i) => document.getElementById('video-' + i));
+    const mergedVideo = document.getElementById('mergedVideo');
+    const videoStatusMerged = document.getElementById('videoStatusMerged');
+    const ratingColumns = document.getElementById('ratingColumns');
     const submitButton = document.getElementById('submitButton');
     const exportButton = document.getElementById('exportButton');
     const trajectoryImage = document.getElementById('trajectoryImage');
@@ -568,12 +558,7 @@
         const count = Number(v.dataset.retryCount);
         const delay = Math.min(Math.round(2000 * Math.pow(1.5, count - 1)), 30000);
 
-        const name = v.dataset && v.dataset.filename ? v.dataset.filename : v.id;
-        const videoIndex = v.id.replace('video-', '');
-        const statusElForVideo = document.getElementById(`status-${videoIndex}`);
-        if (statusElForVideo) {
-          statusElForVideo.textContent = `⚠️ 视频 "${name}" 尚未就绪或加载失败，正在重试（第 ${count} 次，间隔 ${Math.round(delay / 1000)}s）...`;
-        }
+        videoStatusMerged.textContent = `⚠️ 合并视频尚未就绪或加载失败，正在重试（第 ${count} 次，间隔 ${Math.round(delay / 1000)}s）...`;
 
         clearRetryTimer();
         const t = setTimeout(() => {
@@ -593,15 +578,11 @@
       v.addEventListener('loadeddata', () => {
         clearRetryTimer();
         v.dataset.retryCount = 0;
-        const videoIndex = v.id.replace('video-', '');
-        const statusElForVideo = document.getElementById(`status-${videoIndex}`);
-        if (statusElForVideo) {
-          statusElForVideo.textContent = '';
-        }
+        videoStatusMerged.textContent = '';
       });
     }
 
-    videoEls.forEach(v => setupVideoRetry(v));
+    setupVideoRetry(mergedVideo);
 
     function setupTrajectoryImage() {
       trajectoryImage.dataset.retryCount = 0;
@@ -655,166 +636,6 @@
       trajectoryStatus.textContent = '';
     }
 
-    let syncMasterVideo = null;
-    let syncGeneration = 0;
-    let syncSuspended = true;
-    let groupShouldBePlaying = false;
-    let groupRestarting = false;
-    const programmedSeekTargets = new WeakMap();
-
-    function activeVideos() {
-      return videoEls.filter(video => video.getAttribute('src'));
-    }
-
-    function setVideoTime(video, time) {
-      if (!Number.isFinite(video.duration) || video.readyState < 1) return;
-      const upperBound = Math.max(0, video.duration - 0.001);
-      const target = Math.min(Math.max(0, time), upperBound);
-      programmedSeekTargets.set(video, target);
-      if (Math.abs(video.currentTime - target) > 0.005) {
-        video.currentTime = target;
-      }
-    }
-
-    function setGroupTime(time) {
-      activeVideos().forEach(video => setVideoTime(video, time));
-    }
-
-    function pauseVideoGroup() {
-      const masterTime = syncMasterVideo ? syncMasterVideo.currentTime : null;
-      groupShouldBePlaying = false;
-      activeVideos().forEach(video => {
-        video.pause();
-        video.playbackRate = 1;
-      });
-      if (Number.isFinite(masterTime)) {
-        setGroupTime(masterTime);
-      }
-    }
-
-    function playVideoGroup(time) {
-      if (syncSuspended || !syncMasterVideo) return;
-
-      if (Number.isFinite(time)) {
-        setGroupTime(time);
-      }
-      groupShouldBePlaying = true;
-
-      const orderedVideos = [
-        syncMasterVideo,
-        ...activeVideos().filter(video => video !== syncMasterVideo)
-      ];
-      const playAttempts = orderedVideos.map(video => video.play());
-
-      Promise.allSettled(playAttempts).then(results => {
-        if (!groupShouldBePlaying || syncSuspended) return;
-        // 若有声主视频被浏览器的自动播放策略拦截，整组保持暂停，
-        // 等待用户点击任意一个视频的播放按钮。
-        if (results[0] && results[0].status === 'rejected') {
-          pauseVideoGroup();
-        }
-      });
-    }
-
-    function restartVideoGroup() {
-      if (groupRestarting || syncSuspended) return;
-      groupRestarting = true;
-      activeVideos().forEach(video => {
-        video.pause();
-        video.playbackRate = 1;
-      });
-      setGroupTime(0);
-      requestAnimationFrame(() => {
-        groupRestarting = false;
-        playVideoGroup(0);
-      });
-    }
-
-    function configureVideoSync() {
-      syncMasterVideo = activeVideos()[0] || null;
-
-      activeVideos().forEach(video => {
-        video.loop = false;
-        video.playbackRate = 1;
-      });
-
-      syncSuspended = false;
-    }
-
-    function stopVideoSync() {
-      syncGeneration++;
-      syncSuspended = true;
-      groupRestarting = false;
-      pauseVideoGroup();
-      syncMasterVideo = null;
-    }
-
-    videoEls.forEach(video => {
-      video.addEventListener('play', () => {
-        if (syncSuspended || groupShouldBePlaying) return;
-        playVideoGroup(video.currentTime);
-      });
-
-      video.addEventListener('pause', () => {
-        if (
-          syncSuspended ||
-          groupRestarting ||
-          !groupShouldBePlaying ||
-          video.ended
-        ) return;
-        pauseVideoGroup();
-      });
-
-      video.addEventListener('seeking', () => {
-        if (syncSuspended || groupRestarting) return;
-        const programmedTarget = programmedSeekTargets.get(video);
-        if (
-          programmedTarget !== undefined &&
-          Math.abs(video.currentTime - programmedTarget) < 0.15
-        ) {
-          return;
-        }
-        setGroupTime(video.currentTime);
-      });
-
-      video.addEventListener('seeked', () => {
-        programmedSeekTargets.delete(video);
-      });
-
-      video.addEventListener('ended', () => {
-        if (video === syncMasterVideo) {
-          restartVideoGroup();
-        }
-      });
-    });
-
-    function autoPlayAllVideos() {
-      const generation = syncGeneration;
-      const loadPromises = videoEls
-        .filter(v => v.src)
-        .map(video => new Promise((resolve) => {
-          if (video.readyState >= 2) {
-            resolve();
-            return;
-          }
-          const onCanPlay = () => {
-            video.removeEventListener('canplay', onCanPlay);
-            resolve();
-          };
-          video.addEventListener('canplay', onCanPlay);
-          const onError = () => {
-            video.removeEventListener('error', onError);
-            resolve();
-          };
-          video.addEventListener('error', onError);
-        }));
-
-      Promise.all(loadPromises).then(() => {
-        if (generation !== syncGeneration || syncSuspended) return;
-        playVideoGroup(0);
-      });
-    }
-
     function updateRatingStyles(block) {
       const labels = block.querySelectorAll('label');
       labels.forEach(label => {
@@ -828,16 +649,16 @@
     }
 
     function initRatingControls() {
-      const scenes = sceneGrid.querySelectorAll('.scene');
-      scenes.forEach(scene => {
-        const sceneIndex = Number(scene.dataset.sceneIndex);
-        const ratingBlocks = scene.querySelectorAll('.rating-options');
+      const columns = ratingColumns.querySelectorAll('.rating-column');
+      columns.forEach(column => {
+        const colIndex = Number(column.dataset.colIndex);
+        const ratingBlocks = column.querySelectorAll('.rating-options');
         ratingBlocks.forEach(block => {
           const type = block.dataset.type;
           block.innerHTML = '';
           for (let score = 1; score <= 5; score++) {
-            const id = `t${currentTrial}_s${sceneIndex}_${type}_${score}`;
-            const name = `t${currentTrial}_s${sceneIndex}_${type}`;
+            const id = `t${currentTrial}_c${colIndex}_${type}_${score}`;
+            const name = `t${currentTrial}_c${colIndex}_${type}`;
 
             const label = document.createElement('label');
             const input = document.createElement('input');
@@ -862,18 +683,14 @@
     }
 
     function loadTrial() {
-      stopVideoSync();
       if (currentTrial >= randomizedTrials.length) {
         statusEl.textContent = '✅ 所有页已完成，可以提交结果或下载备份。';
         trialInfoEl.textContent = '';
         pageSceneEl.textContent = '';
         musicStyleEl.textContent = '';
         clearTrajectoryImage();
-        videoEls.forEach(v => v.removeAttribute('src'));
-        for (let i = 0; i < METHOD_COUNT; i++) {
-          const statusElForVideo = document.getElementById(`status-${i}`);
-          if (statusElForVideo) statusElForVideo.textContent = '';
-        }
+        mergedVideo.removeAttribute('src');
+        videoStatusMerged.textContent = '';
         updateActionButtons();
         return;
       }
@@ -883,45 +700,11 @@
       musicStyleEl.textContent = sceneMusicStyles[t.sceneName] || '';
       loadTrajectoryImage(t.sceneName);
 
-      const videoMethodPairs = t.videos.map((videoSrc, idx) => ({
-        videoSrc: videoSrc,
-        method: t.methods[idx],
-        filename: videoSrc.split('/').pop().replace('.mp4', '')
-      }));
-      // 同一页面返回重看时保持原有方法顺序，避免评分与方法错位。
-      if (!t.shuffledPairs) {
-        t.shuffledPairs = shuffle([...videoMethodPairs]);
-      }
-      const shuffledPairs = t.shuffledPairs;
+      mergedVideo.src = t.mergedVideo;
+      mergedVideo.loop = true;
+      mergedVideo.load();
+      videoStatusMerged.textContent = '';
 
-      t.shuffledOrder = shuffledPairs.map((pair, idx) => ({
-        displayIndex: idx + 1,
-        method: pair.method,
-        filename: pair.filename
-      }));
-
-      videoEls.forEach((video, index) => {
-        const pair = shuffledPairs[index];
-        video.src = pair.videoSrc;
-        video.loop = false;
-        video.dataset.method = pair.method;
-        video.dataset.filename = pair.filename;
-        video.dataset.displayIndex = index + 1;
-
-        const scene = sceneGrid.querySelector(`[data-scene-index="${index}"]`);
-        if (scene) {
-          const titleEl = scene.querySelector('.scene-title');
-          if (titleEl) {
-            titleEl.textContent = '';
-          }
-        }
-
-        const statusElForVideo = document.getElementById(`status-${index}`);
-        if (statusElForVideo) statusElForVideo.textContent = '';
-      });
-
-      configureVideoSync();
-      autoPlayAllVideos();
       initRatingControls();
       restoreRatings();
       updatePrevButton();
@@ -937,29 +720,29 @@
 
       if (savedResult) {
         savedResult.ratings.forEach(rating => {
-          const sceneIndex = rating.displayIndex - 1;
-          const scene = sceneGrid.querySelector(`[data-scene-index="${sceneIndex}"]`);
+          const colIndex = rating.displayIndex - 1;
+          const column = ratingColumns.querySelector(`[data-col-index="${colIndex}"]`);
 
-          if (scene) {
-            const trajectoryInput = scene.querySelector(`input[name*="_trajectory"][value="${rating.trajectory}"]`);
+          if (column) {
+            const trajectoryInput = column.querySelector(`input[name*="_trajectory"][value="${rating.trajectory}"]`);
             if (trajectoryInput) {
               trajectoryInput.checked = true;
               trajectoryInput.dispatchEvent(new Event('change'));
             }
 
-            const qualityInput = scene.querySelector(`input[name*="_quality"][value="${rating.quality}"]`);
+            const qualityInput = column.querySelector(`input[name*="_quality"][value="${rating.quality}"]`);
             if (qualityInput) {
               qualityInput.checked = true;
               qualityInput.dispatchEvent(new Event('change'));
             }
 
-            const rhythmInput = scene.querySelector(`input[name*="_rhythm"][value="${rating.rhythm}"]`);
+            const rhythmInput = column.querySelector(`input[name*="_rhythm"][value="${rating.rhythm}"]`);
             if (rhythmInput) {
               rhythmInput.checked = true;
               rhythmInput.dispatchEvent(new Event('change'));
             }
 
-            const footContactInput = scene.querySelector(`input[name*="_footContact"][value="${rating.footContact}"]`);
+            const footContactInput = column.querySelector(`input[name*="_footContact"][value="${rating.footContact}"]`);
             if (footContactInput) {
               footContactInput.checked = true;
               footContactInput.dispatchEvent(new Event('change'));
@@ -986,24 +769,24 @@
     }
 
     function collectRatings() {
-      const scenes = sceneGrid.querySelectorAll('.scene');
+      const t = randomizedTrials[currentTrial];
+      const methodOrder = t.methodOrder;
+      const columns = ratingColumns.querySelectorAll('.rating-column');
       let allRated = true;
       const ratings = [];
 
-      scenes.forEach((scene, sceneIndex) => {
-        const trajectoryInput = scene.querySelector('input[name*="_trajectory"]:checked');
-        const qualityInput = scene.querySelector('input[name*="_quality"]:checked');
-        const rhythmInput = scene.querySelector('input[name*="_rhythm"]:checked');
-        const footContactInput = scene.querySelector('input[name*="_footContact"]:checked');
+      columns.forEach((column, colIndex) => {
+        const trajectoryInput = column.querySelector('input[name*="_trajectory"]:checked');
+        const qualityInput = column.querySelector('input[name*="_quality"]:checked');
+        const rhythmInput = column.querySelector('input[name*="_rhythm"]:checked');
+        const footContactInput = column.querySelector('input[name*="_footContact"]:checked');
 
         if (!trajectoryInput || !qualityInput || !rhythmInput || !footContactInput) {
           allRated = false;
         } else {
-          const video = videoEls[sceneIndex];
           ratings.push({
-            displayIndex: sceneIndex + 1,
-            method: video.dataset.method,
-            filename: video.dataset.filename,
+            displayIndex: colIndex + 1,
+            method: methodOrder[colIndex],
             trajectory: trajectoryInput.value,
             quality: qualityInput.value,
             rhythm: rhythmInput.value,
@@ -1049,8 +832,6 @@
       const allScenesCompleted = areAllScenesCompleted();
       const savedSubmission = localStorage.getItem(SUBMISSION_KEY);
 
-      // no-cors 无法确认服务器是否写入成功，因此不能因本地存在提交记录
-      // 就永久禁用按钮；保留相同 submissionId 供安全重试。
       submitButton.disabled = !allScenesCompleted;
       submitButton.textContent = savedSubmission ? '重新提交' : '提交结果';
       exportButton.disabled = !allScenesCompleted;
@@ -1155,7 +936,6 @@
           })
         );
 
-        // no-cors 无法读取服务器响应，因此这里只能确认请求已由浏览器发出。
         statusEl.textContent = '✅ 提交请求已发送，感谢参与！';
         updateActionButtons();
       } catch (error) {
