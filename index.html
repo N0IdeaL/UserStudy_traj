@@ -262,13 +262,13 @@
 
   <h2>用户研究：舞蹈生成视频主观评价</h2>
   <p>
-    每一页展示同一场景下，5 种不同方法的生成结果，请观看后分别评分。<br>
+    这是一个舞蹈生成任务。每一页，5个方法接收同样的音乐和轨迹输入，生成了5个视频结果。<br>
     请对每个视频从四个维度进行 1–5 分评分<br>
     <b><span style="color:#d40303;">评分标准：</span> 1=很差，2=较差，3=一般，4=较好，5=很好</b><br>
-    <b><span style="color:#d40303;">维度一：</span> 轨迹跟随情况</b>（生成动作是否准确跟随参考轨迹？）<br>
-    <b><span style="color:#d40303;">维度二：</span> 舞蹈动作质量</b>（动作是否流畅自然、符合舞蹈表现？）<br>
-    <b><span style="color:#d40303;">维度三：</span> 音乐节奏对齐</b>（动作是否与音乐节拍、节奏保持同步？）<br>
-    <b><span style="color:#d40303;">维度四：</span> 足部接触稳定性</b>（脚部落地、接触地面是否稳定、无明显滑步或漂浮？）
+    <b><span style="color:#d40303;">维度一：</span> 轨迹跟随准确性：</b> 舞者在地面上的移动路径是否与给定轨迹一致？请关注移动方向、转弯位置、移动范围和最终到达位置。<br>
+    <b><span style="color:#d40303;">维度二：</span> 动作自然性与舞蹈质量：</b>舞蹈动作是否连贯、自然、协调，并具有舞蹈表现力？是否存在明显的僵硬、抖动、动作突变或异常姿势？<br>
+    <b><span style="color:#d40303;">维度三：</span> 音乐与动作同步性：</b>动作的重拍、停顿、转折和速度变化是否与音乐的节拍和节奏相匹配？<br>
+    <b><span style="color:#d40303;">维度四：</span> 足地接触与物理合理性：</b>舞者落脚或支撑时，是否存在明显足部滑动、漂浮、穿入地面，或身体移动与脚步不协调的现象？是否出现关节不合理旋转和穿模等不合理情况？<br>
   </p>
   <p id="pageScene"></p>
 
@@ -288,19 +288,19 @@
       <div class="media-wrap"><video id="video-0" controls preload="auto"></video></div>
       <div class="video-status" id="status-0" aria-live="polite"></div>
       <div class="rating-block">
-        <div class="rating-label">轨迹跟随情况</div>
+        <div class="rating-label">轨迹跟随准确性</div>
         <div class="rating-options" data-type="trajectory"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">舞蹈动作质量</div>
+        <div class="rating-label">动作自然性与舞蹈质量</div>
         <div class="rating-options" data-type="quality"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">音乐节奏对齐</div>
+        <div class="rating-label">音乐与动作同步性</div>
         <div class="rating-options" data-type="rhythm"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">足部接触稳定性</div>
+        <div class="rating-label">足地接触与物理合理性</div>
         <div class="rating-options" data-type="footContact"></div>
       </div>
     </div>
@@ -310,19 +310,19 @@
       <div class="media-wrap"><video id="video-1" controls preload="auto"></video></div>
       <div class="video-status" id="status-1" aria-live="polite"></div>
       <div class="rating-block">
-        <div class="rating-label">轨迹跟随情况</div>
+        <div class="rating-label">轨迹跟随准确性</div>
         <div class="rating-options" data-type="trajectory"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">舞蹈动作质量</div>
+        <div class="rating-label">动作自然性与舞蹈质量</div>
         <div class="rating-options" data-type="quality"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">音乐节奏对齐</div>
+        <div class="rating-label">音乐与动作同步性</div>
         <div class="rating-options" data-type="rhythm"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">足部接触稳定性</div>
+        <div class="rating-label">足地接触与物理合理性</div>
         <div class="rating-options" data-type="footContact"></div>
       </div>
     </div>
@@ -332,19 +332,19 @@
       <div class="media-wrap"><video id="video-2" controls preload="auto"></video></div>
       <div class="video-status" id="status-2" aria-live="polite"></div>
       <div class="rating-block">
-        <div class="rating-label">轨迹跟随情况</div>
+        <div class="rating-label">轨迹跟随准确性</div>
         <div class="rating-options" data-type="trajectory"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">舞蹈动作质量</div>
+        <div class="rating-label">动作自然性与舞蹈质量</div>
         <div class="rating-options" data-type="quality"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">音乐节奏对齐</div>
+        <div class="rating-label">音乐与动作同步性</div>
         <div class="rating-options" data-type="rhythm"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">足部接触稳定性</div>
+        <div class="rating-label">足地接触与物理合理性</div>
         <div class="rating-options" data-type="footContact"></div>
       </div>
     </div>
@@ -354,19 +354,19 @@
       <div class="media-wrap"><video id="video-3" controls preload="auto"></video></div>
       <div class="video-status" id="status-3" aria-live="polite"></div>
       <div class="rating-block">
-        <div class="rating-label">轨迹跟随情况</div>
+        <div class="rating-label">轨迹跟随准确性</div>
         <div class="rating-options" data-type="trajectory"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">舞蹈动作质量</div>
+        <div class="rating-label">动作自然性与舞蹈质量</div>
         <div class="rating-options" data-type="quality"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">音乐节奏对齐</div>
+        <div class="rating-label">音乐与动作同步性</div>
         <div class="rating-options" data-type="rhythm"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">足部接触稳定性</div>
+        <div class="rating-label">足地接触与物理合理性</div>
         <div class="rating-options" data-type="footContact"></div>
       </div>
     </div>
@@ -376,19 +376,19 @@
       <div class="media-wrap"><video id="video-4" controls preload="auto"></video></div>
       <div class="video-status" id="status-4" aria-live="polite"></div>
       <div class="rating-block">
-        <div class="rating-label">轨迹跟随情况</div>
+        <div class="rating-label">轨迹跟随准确性</div>
         <div class="rating-options" data-type="trajectory"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">舞蹈动作质量</div>
+        <div class="rating-label">动作自然性与舞蹈质量</div>
         <div class="rating-options" data-type="quality"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">音乐节奏对齐</div>
+        <div class="rating-label">音乐与动作同步性</div>
         <div class="rating-options" data-type="rhythm"></div>
       </div>
       <div class="rating-block">
-        <div class="rating-label">足部接触稳定性</div>
+        <div class="rating-label">足地接触与物理合理性</div>
         <div class="rating-options" data-type="footContact"></div>
       </div>
     </div>
@@ -1100,7 +1100,7 @@
         );
 
         // no-cors 无法读取服务器响应，因此这里只能确认请求已由浏览器发出。
-        statusEl.textContent = '✅ 提交请求已发送，感谢参与。建议保留下载备份。';
+        statusEl.textContent = '✅ 提交请求已发送，感谢参与！';
         updateActionButtons();
       } catch (error) {
         console.error(error);
