@@ -22,19 +22,47 @@
       margin-top: 0;
     }
 
-    .trial-layout {
+    .input-info-row {
       display: flex;
-      gap: 28px;
+      gap: 32px;
       align-items: flex-start;
       justify-content: center;
-      margin-top: 24px;
+      margin-top: 20px;
       max-width: 1680px;
       margin-left: auto;
       margin-right: auto;
     }
 
+    .input-info-left {
+      flex: 0 0 210px;
+    }
+
+    .input-info-right {
+      flex: 1;
+      max-width: 720px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      padding: 14px 18px;
+      font-size: 14px;
+      line-height: 1.65;
+      text-align: left;
+    }
+
+    .music-label {
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 8px;
+      text-align: center;
+      color: #2563eb;
+    }
+
+    .music-style {
+      font-weight: normal;
+      color: #333;
+    }
+
     .trajectory-panel {
-      flex: 0 0 260px;
       background: #ffffff;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
@@ -76,8 +104,14 @@
       min-height: 18px;
     }
 
+    .trial-layout {
+      margin-top: 24px;
+      max-width: 1680px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
     .scene-grid {
-      flex: 1;
       display: grid;
       grid-template-columns: repeat(5, minmax(210px, 1fr));
       gap: 20px 22px;
@@ -85,18 +119,22 @@
     }
 
     @media (max-width: 1400px) {
-      .trial-layout {
+      .input-info-row {
         flex-direction: column;
         align-items: center;
       }
 
-      .trajectory-panel {
+      .input-info-left {
         flex: 0 0 auto;
-        width: min(260px, 100%);
+        width: min(210px, 100%);
+      }
+
+      .input-info-right {
+        width: 100%;
+        max-width: 100%;
       }
 
       .scene-grid {
-        width: 100%;
         grid-template-columns: repeat(3, minmax(200px, 1fr));
       }
     }
@@ -263,24 +301,32 @@
   <h2>用户研究：舞蹈生成视频主观评价</h2>
   <p>
     这是一个舞蹈生成任务。每一页，5个方法接收同样的音乐和轨迹输入，生成了5个视频结果。<br>
-    请对每个视频从四个维度进行 1–5 分评分<br>
-    <b><span style="color:#d40303;">评分标准：</span> 1=很差，2=较差，3=一般，4=较好，5=很好</b><br>
-    <b><span style="color:#d40303;">维度一：</span> 轨迹跟随准确性：</b> 舞者在地面上的移动路径是否与给定轨迹一致？请关注移动方向、转弯位置、移动范围和最终到达位置。<br>
-    <b><span style="color:#d40303;">维度二：</span> 动作自然性与舞蹈质量：</b>舞蹈动作是否连贯、自然、协调，并具有舞蹈表现力？是否存在明显的僵硬、抖动、动作突变或异常姿势？<br>
-    <b><span style="color:#d40303;">维度三：</span> 音乐与动作同步性：</b>动作的重拍、停顿、转折和速度变化是否与音乐的节拍和节奏相匹配？<br>
-    <b><span style="color:#d40303;">维度四：</span> 足地接触与物理合理性：</b>舞者落脚或支撑时，是否存在明显足部滑动、漂浮、穿入地面，或身体移动与脚步不协调的现象？是否出现关节不合理旋转和穿模等不合理情况？<br>
+    请对每个视频从四个维度进行 1–5 分评分。
   </p>
   <p id="pageScene"></p>
 
-  <div class="trial-layout">
-    <div class="trajectory-panel">
-      <div class="trajectory-label">输入轨迹</div>
-      <div class="trajectory-image-wrap">
-        <img id="trajectoryImage" alt="输入轨迹" />
+  <div class="input-info-row">
+    <div class="input-info-left">
+      <div class="music-label">输入音乐：<span id="musicStyle" class="music-style"></span></div>
+      <div class="trajectory-panel">
+        <div class="trajectory-label">输入轨迹</div>
+        <div class="trajectory-image-wrap">
+          <img id="trajectoryImage" alt="输入轨迹" />
+        </div>
+        <div class="trajectory-status" id="trajectoryStatus" aria-live="polite"></div>
       </div>
-      <div class="trajectory-status" id="trajectoryStatus" aria-live="polite"></div>
     </div>
 
+    <div class="input-info-right">
+      <b><span style="color:#d40303;">评分标准：</span> 1=很差，2=较差，3=一般，4=较好，5=很好</b><br>
+      <b><span style="color:#d40303;">维度一：</span> 轨迹跟随准确性：</b> 舞者在地面上的移动路径是否与给定轨迹一致？请关注移动方向、转弯位置、移动范围和最终到达位置。<br>
+      <b><span style="color:#d40303;">维度二：</span> 动作自然性与舞蹈质量：</b>舞蹈动作是否连贯、自然、协调，并具有舞蹈表现力？是否存在明显的僵硬、抖动、动作突变或异常姿势？<br>
+      <b><span style="color:#d40303;">维度三：</span> 音乐与动作同步性：</b>动作的重拍、停顿、转折和速度变化是否与音乐的节拍和节奏相匹配？<br>
+      <b><span style="color:#d40303;">维度四：</span> 足地接触与物理合理性：</b>舞者落脚或支撑时，是否存在明显足部滑动、漂浮、穿入地面，或身体移动与脚步不协调的现象？是否出现关节不合理旋转和穿模等不合理情况？
+    </div>
+  </div>
+
+  <div class="trial-layout">
     <div id="sceneGrid" class="scene-grid">
     <!-- 5 个方法，由 JS 初始化标题与评分控件 -->
     <div class="scene" data-scene-index="0">
@@ -413,6 +459,13 @@
     // 4 个场景文件夹（01～04），视频尚未全部就绪时会显示加载重试提示
     const sceneFolders = ['01', '02', '03', '04'];
 
+    const sceneMusicStyles = {
+      '01': 'ballet jazz',
+      '02': 'House',
+      '03': 'ballet jazz',
+      '04': 'street jazz'
+    };
+
     const METHOD_COUNT = methodNames.length;
 
     // 替换为 Google Apps Script 部署后得到的 /exec 地址。
@@ -472,6 +525,7 @@
     const exportButton = document.getElementById('exportButton');
     const trajectoryImage = document.getElementById('trajectoryImage');
     const trajectoryStatus = document.getElementById('trajectoryStatus');
+    const musicStyleEl = document.getElementById('musicStyle');
 
     (function installBasicDevtoolsDeterrent() {
       document.addEventListener('contextmenu', function (e) {
@@ -813,6 +867,7 @@
         statusEl.textContent = '✅ 所有页已完成，可以提交结果或下载备份。';
         trialInfoEl.textContent = '';
         pageSceneEl.textContent = '';
+        musicStyleEl.textContent = '';
         clearTrajectoryImage();
         videoEls.forEach(v => v.removeAttribute('src'));
         for (let i = 0; i < METHOD_COUNT; i++) {
@@ -825,6 +880,7 @@
 
       const t = randomizedTrials[currentTrial];
       pageSceneEl.textContent = `当前场景：${t.sceneName}`;
+      musicStyleEl.textContent = sceneMusicStyles[t.sceneName] || '';
       loadTrajectoryImage(t.sceneName);
 
       const videoMethodPairs = t.videos.map((videoSrc, idx) => ({
